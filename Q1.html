@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Processing</title>
+    <style>
+        /* Add your CSS styling here */
+    </style>
+</head>
+<body>
+    <input type="file" id="fileInput">
+    <canvas id="canvas" style="display: none;"></canvas>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const image = new Image();
+                image.onload = function() {
+                    const canvas = document.getElementById('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = image.width;
+                    canvas.height = image.height;
+                    ctx.drawImage(image, 0, 0, image.width, image.height);
+
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const pixels = imageData.data;
+
+                    let redCount = 0, greenCount = 0, blueCount = 0;
+                    for (let i = 0; i < pixels.length; i += 4) {
+                        const r = pixels[i];
+                        const g = pixels[i + 1];
+                        const b = pixels[i + 2];
+
+                        if (r > g + b) {
+                            redCount++;
+                        } else if (g > r + b) {
+                            greenCount++;
+                        } else if (b > r + g) {
+                            blueCount++;
+                        }
+                    }
+
+                    const totalPixels = canvas.width * canvas.height;
+                    const redPercentage = (redCount / totalPixels) * 100;
+                    const greenPercentage = (greenCount / totalPixels) * 100;
+                    const bluePercentage = (blueCount / totalPixels) * 100;
+
+                    let result = '';
+                    if (redPercentage > 50) {
+                        result = 'Reddish';
+                    } else if (greenPercentage > 50) {
+                        result = 'Greenish';
+                    } else if (bluePercentage > 50) {
+                        result = 'Blueish';
+                    } else {
+                        result = 'No predominant color';
+                    }
+
+                    document.getElementById('result').textContent = `The image is ${result}`;
+                };
+                image.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    </script>
+</body>
+</html>
